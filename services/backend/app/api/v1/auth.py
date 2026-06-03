@@ -7,7 +7,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user
 from app.core.config import settings
+from app.db.models import User
 from app.db.session import get_db
 from app.repositories.users import UserRepository
 from app.schemas.auth import AuthLoginResponse, UserProfile
@@ -112,16 +114,7 @@ async def google_callback(
 
 
 @router.get("/me", response_model=UserProfile)
-def me(request: Request, db: Annotated[Session, Depends(get_db)]) -> UserProfile:
-    user_id = request.session.get("user_id")
-    if not user_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
-
-    user = UserRepository(db).get_by_id(user_id)
-    if user is None:
-        request.session.clear()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
-
+def me(user: Annotated[User, Depends(get_current_user)]) -> UserProfile:
     return UserProfile.model_validate(user)
 
 

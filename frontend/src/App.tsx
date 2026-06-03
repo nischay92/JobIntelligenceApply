@@ -6,14 +6,15 @@ import {
   LogIn,
   LogOut,
   ShieldCheck,
+  Upload,
   Sparkles
 } from "lucide-react";
 
 const milestones = [
-  "Google OAuth routes",
-  "Signed session cookie",
-  "User profile persistence",
-  "Protected /me endpoint",
+  "PDF and DOCX upload",
+  "Authenticated resume API",
+  "Secure file validation",
+  "Resume metadata storage",
   "Human-in-loop guardrails"
 ];
 
@@ -26,11 +27,24 @@ type UserProfile = {
   avatar_url: string | null;
 };
 
+type Resume = {
+  id: string;
+  original_filename: string;
+  file_mime_type: string;
+  file_size_bytes: number;
+  status: string;
+  active: boolean;
+  created_at: string;
+};
+
 export function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [authStatus, setAuthStatus] = useState<"checking" | "anonymous" | "authenticated">(
     "checking"
   );
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "uploaded">("idle");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -49,6 +63,7 @@ export function App() {
         const profile = (await response.json()) as UserProfile;
         setUser(profile);
         setAuthStatus("authenticated");
+        await loadResumes();
       } catch {
         setError("The backend is not reachable yet.");
         setAuthStatus("anonymous");
@@ -57,6 +72,15 @@ export function App() {
 
     void loadUser();
   }, []);
+
+  async function loadResumes() {
+    const response = await fetch(`${apiBaseUrl}/api/v1/resumes`, {
+      credentials: "include"
+    });
+    if (response.ok) {
+      setResumes((await response.json()) as Resume[]);
+    }
+  }
 
   async function signIn() {
     setError(null);
@@ -77,7 +101,37 @@ export function App() {
       credentials: "include"
     });
     setUser(null);
+    setResumes([]);
     setAuthStatus("anonymous");
+  }
+
+  async function uploadResume() {
+    if (!selectedFile) {
+      setError("Choose a PDF or DOCX resume first.");
+      return;
+    }
+
+    setError(null);
+    setUploadStatus("uploading");
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    const response = await fetch(`${apiBaseUrl}/api/v1/resumes`, {
+      method: "POST",
+      credentials: "include",
+      body: formData
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
+      setError(payload?.detail ?? "Resume upload failed.");
+      setUploadStatus("idle");
+      return;
+    }
+
+    setSelectedFile(null);
+    setUploadStatus("uploaded");
+    await loadResumes();
   }
 
   return (
@@ -87,8 +141,8 @@ export function App() {
           <p className="eyebrow">ApplyWise AI</p>
           <h1>Job intelligence with the human firmly in charge.</h1>
           <p className="summary">
-            Phase 3 adds Google authentication, signed sessions, and a protected identity
-            endpoint without changing the product rule: ApplyWise AI never submits applications.
+            Phase 4 adds authenticated resume upload for PDF and DOCX files. Original resumes are
+            stored safely as source documents; parsing and suggestions come in later phases.
           </p>
         </div>
         <div className="status-panel" aria-label="Authentication status">
@@ -133,7 +187,59 @@ export function App() {
         </div>
       </section>
 
-      <section className="milestone-grid" aria-label="Phase 3 milestones">
+      {authStatus === "authenticated" ? (
+        <section className="resume-workbench" aria-label="Resume upload">
+          <div>
+            <p className="eyebrow">Resume</p>
+            <h2>Upload your source resume.</h2>
+            <p>
+              Files are accepted as PDF or DOCX and stored unchanged. ApplyWise will use parsed
+              copies and suggestions later without editing this original.
+            </p>
+          </div>
+          <div className="upload-panel">
+            <label className="file-picker">
+              <FileText aria-hidden="true" />
+              <span>{selectedFile ? selectedFile.name : "Choose PDF or DOCX"}</span>
+              <input
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+                type="file"
+              />
+            </label>
+            <button
+              className="auth-button"
+              disabled={uploadStatus === "uploading"}
+              onClick={() => void uploadResume()}
+              type="button"
+            >
+              <Upload aria-hidden="true" />
+              <span>{uploadStatus === "uploading" ? "Uploading" : "Upload resume"}</span>
+            </button>
+            {uploadStatus === "uploaded" ? <p className="auth-note">Resume uploaded.</p> : null}
+          </div>
+          <div className="resume-list" aria-label="Uploaded resumes">
+            {resumes.length === 0 ? (
+              <p>No resumes uploaded yet.</p>
+            ) : (
+              resumes.map((resume) => (
+                <article className="resume-row" key={resume.id}>
+                  <FileText aria-hidden="true" />
+                  <div>
+                    <strong>{resume.original_filename}</strong>
+                    <span>
+                      {resume.status} · {Math.ceil(resume.file_size_bytes / 1024)} KB
+                      {resume.active ? " · active" : ""}
+                    </span>
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="milestone-grid" aria-label="Phase 4 milestones">
         {milestones.map((milestone) => (
           <article className="milestone-card" key={milestone}>
             <Sparkles aria-hidden="true" />
@@ -144,7 +250,7 @@ export function App() {
 
       <footer className="footer-note">
         <Bell aria-hidden="true" />
-        <span>Dashboard features arrive in Phase 10; this screen is the authenticated shell.</span>
+        <span>Resume parsing arrives in Phase 5; this phase only stores source resumes.</span>
       </footer>
     </main>
   );

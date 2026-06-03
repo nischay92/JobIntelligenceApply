@@ -34,6 +34,10 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8000/api/v1/auth/google/callback}
+      UPLOAD_STORAGE_DIR: ${UPLOAD_STORAGE_DIR:-/app/uploads}
+      MAX_UPLOAD_SIZE_BYTES: ${MAX_UPLOAD_SIZE_BYTES:-5242880}
+    volumes:
+      - backend-uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -120,3 +124,4 @@ services:
 volumes:
   postgres-data:
   chroma-data:
+  backend-uploads:

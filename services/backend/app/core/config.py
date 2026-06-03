@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
     session_cookie_name: str = "applywise_session"
     session_max_age_seconds: int = 60 * 60 * 24 * 7
+    upload_storage_dir: str = "uploads"
+    max_upload_size_bytes: int = 5 * 1024 * 1024
 
     model_config = SettingsConfigDict(env_file=(".env", "../../.env"), extra="ignore")
 

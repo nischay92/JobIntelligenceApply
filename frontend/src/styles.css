@@ -28,6 +28,11 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -183,6 +188,82 @@ svg {
   color: #596675;
 }
 
+.resume-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px) minmax(260px, 420px);
+  gap: 22px;
+  align-items: start;
+  border-top: 1px solid #d6dce3;
+  padding-top: 28px;
+}
+
+.resume-workbench h2 {
+  margin: 0;
+  color: #1b2430;
+  font-size: 1.55rem;
+  letter-spacing: 0;
+}
+
+.resume-workbench p {
+  margin: 10px 0 0;
+  color: #596675;
+  line-height: 1.55;
+}
+
+.upload-panel,
+.resume-list {
+  display: grid;
+  gap: 12px;
+}
+
+.file-picker {
+  position: relative;
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  gap: 12px;
+  border: 1px dashed #9daaba;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 16px;
+  color: #263241;
+  font-weight: 700;
+}
+
+.file-picker input {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.file-picker span {
+  overflow-wrap: anywhere;
+}
+
+.resume-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #d6dce3;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.resume-row strong,
+.resume-row span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.resume-row span {
+  margin-top: 4px;
+  color: #596675;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 920px) {
   .app-shell {
     padding: 28px;
@@ -194,6 +275,10 @@ svg {
 
   .milestone-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .resume-workbench {
+    grid-template-columns: 1fr;
   }
 }
 

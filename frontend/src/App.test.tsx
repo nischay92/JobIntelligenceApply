@@ -14,7 +14,7 @@ describe("App", () => {
     );
   });
 
-  it("renders the Phase 3 shell", () => {
+  it("renders the Phase 4 shell", () => {
     render(<App />);
 
     expect(screen.getByText("ApplyWise AI")).toBeInTheDocument();
