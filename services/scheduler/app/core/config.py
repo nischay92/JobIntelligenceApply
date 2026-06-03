@@ -10,9 +10,10 @@ class Settings(BaseSettings):
     scheduler_timezone: str = "America/Indiana/Indianapolis"
     scheduler_discovery_enabled: bool = False
     scheduler_digests_enabled: bool = False
+    discovery_sources: str = "sample"
+    discovery_board_tokens: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 settings = Settings()
-

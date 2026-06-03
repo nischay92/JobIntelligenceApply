@@ -5,6 +5,7 @@ description = "ApplyWise AI scheduler service"
 requires-python = ">=3.12"
 dependencies = [
   "apscheduler>=3.10.4",
+  "httpx>=0.27.2",
   "pydantic-settings>=2.5.2"
 ]
 

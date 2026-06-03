@@ -1,10 +1,12 @@
 import logging
 import signal
 import time
+import asyncio
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.core.config import settings
+from app.jobs.discovery import run_hourly_discovery
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("applywise.scheduler")
@@ -15,7 +17,7 @@ def create_scheduler() -> BackgroundScheduler:
 
     if settings.scheduler_discovery_enabled:
         scheduler.add_job(
-            lambda: logger.info("Discovery job placeholder executed."),
+            lambda: asyncio.run(run_hourly_discovery()),
             "interval",
             hours=1,
             id="hourly_job_discovery",
@@ -58,4 +60,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

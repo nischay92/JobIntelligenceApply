@@ -188,7 +188,8 @@ svg {
   color: #596675;
 }
 
-.resume-workbench {
+.resume-workbench,
+.jobs-workbench {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 360px) minmax(260px, 420px);
   gap: 22px;
@@ -197,21 +198,24 @@ svg {
   padding-top: 28px;
 }
 
-.resume-workbench h2 {
+.resume-workbench h2,
+.jobs-workbench h2 {
   margin: 0;
   color: #1b2430;
   font-size: 1.55rem;
   letter-spacing: 0;
 }
 
-.resume-workbench p {
+.resume-workbench p,
+.jobs-workbench p {
   margin: 10px 0 0;
   color: #596675;
   line-height: 1.55;
 }
 
 .upload-panel,
-.resume-list {
+.resume-list,
+.job-list {
   display: grid;
   gap: 12px;
 }
@@ -241,7 +245,8 @@ svg {
   overflow-wrap: anywhere;
 }
 
-.resume-row {
+.resume-row,
+.job-row {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) 42px;
   gap: 12px;
@@ -252,14 +257,21 @@ svg {
   padding: 14px;
 }
 
+.job-row {
+  grid-template-columns: 24px minmax(0, 1fr);
+}
+
 .resume-row strong,
 .resume-row span,
-.resume-row small {
+.resume-row small,
+.job-row strong,
+.job-row span {
   display: block;
   overflow-wrap: anywhere;
 }
 
-.resume-row span {
+.resume-row span,
+.job-row span {
   margin-top: 4px;
   color: #596675;
   font-size: 0.9rem;
@@ -296,7 +308,8 @@ svg {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .resume-workbench {
+  .resume-workbench,
+  .jobs-workbench {
     grid-template-columns: 1fr;
   }
 }

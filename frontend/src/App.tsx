@@ -43,6 +43,16 @@ type Resume = {
   created_at: string;
 };
 
+type Job = {
+  id: string;
+  company: string;
+  title: string;
+  location: string | null;
+  source: string;
+  remote_policy: string;
+  description_url: string;
+};
+
 export function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [authStatus, setAuthStatus] = useState<"checking" | "anonymous" | "authenticated">(
@@ -52,6 +62,8 @@ export function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "uploaded">("idle");
   const [parsingId, setParsingId] = useState<string | null>(null);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [discoveryStatus, setDiscoveryStatus] = useState<"idle" | "running" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -71,6 +83,7 @@ export function App() {
         setUser(profile);
         setAuthStatus("authenticated");
         await loadResumes();
+        await loadJobs();
       } catch {
         setError("The backend is not reachable yet.");
         setAuthStatus("anonymous");
@@ -86,6 +99,15 @@ export function App() {
     });
     if (response.ok) {
       setResumes((await response.json()) as Resume[]);
+    }
+  }
+
+  async function loadJobs() {
+    const response = await fetch(`${apiBaseUrl}/api/v1/jobs`, {
+      credentials: "include"
+    });
+    if (response.ok) {
+      setJobs((await response.json()) as Job[]);
     }
   }
 
@@ -109,6 +131,7 @@ export function App() {
     });
     setUser(null);
     setResumes([]);
+    setJobs([]);
     setAuthStatus("anonymous");
   }
 
@@ -158,6 +181,27 @@ export function App() {
 
     setParsingId(null);
     await loadResumes();
+  }
+
+  async function runSampleDiscovery() {
+    setError(null);
+    setDiscoveryStatus("running");
+    const response = await fetch(`${apiBaseUrl}/api/v1/jobs/discovery-runs`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source: "sample", company: "ApplyWise Demo Co", limit: 5 })
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
+      setError(payload?.detail ?? "Job discovery failed.");
+      setDiscoveryStatus("idle");
+      return;
+    }
+
+    setDiscoveryStatus("done");
+    await loadJobs();
   }
 
   return (
@@ -270,6 +314,45 @@ export function App() {
                   >
                     <Sparkles aria-hidden="true" />
                   </button>
+                </article>
+              ))
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {authStatus === "authenticated" ? (
+        <section className="jobs-workbench" aria-label="Job discovery">
+          <div>
+            <p className="eyebrow">Jobs</p>
+            <h2>Discover public roles.</h2>
+            <p>
+              Discovery uses public job board endpoints only. ApplyWise shows direct links for human
+              review and never submits applications.
+            </p>
+          </div>
+          <button
+            className="auth-button"
+            disabled={discoveryStatus === "running"}
+            onClick={() => void runSampleDiscovery()}
+            type="button"
+          >
+            <BriefcaseBusiness aria-hidden="true" />
+            <span>{discoveryStatus === "running" ? "Discovering" : "Run sample discovery"}</span>
+          </button>
+          <div className="job-list" aria-label="Discovered jobs">
+            {jobs.length === 0 ? (
+              <p>No jobs discovered yet.</p>
+            ) : (
+              jobs.slice(0, 5).map((job) => (
+                <article className="job-row" key={job.id}>
+                  <BriefcaseBusiness aria-hidden="true" />
+                  <div>
+                    <strong>{job.company}</strong>
+                    <span>
+                      {job.title} · {job.location ?? "Location not listed"} · {job.remote_policy}
+                    </span>
+                  </div>
                 </article>
               ))
             )}
