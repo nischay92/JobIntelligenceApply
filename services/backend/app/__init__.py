@@ -1,0 +1,2 @@
+"""ApplyWise AI backend service."""
+
