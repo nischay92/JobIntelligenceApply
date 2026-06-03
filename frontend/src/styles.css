@@ -24,6 +24,10 @@ select {
   font: inherit;
 }
 
+button {
+  cursor: pointer;
+}
+
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -72,6 +76,69 @@ h1 {
   background: #ffffff;
   padding: 18px;
   box-shadow: 0 18px 50px rgb(27 36 48 / 8%);
+}
+
+.auth-button {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: #1b2430;
+  color: #ffffff;
+  font-weight: 750;
+}
+
+.auth-button.secondary {
+  border: 1px solid #d6dce3;
+  background: #ffffff;
+  color: #263241;
+}
+
+.auth-button svg {
+  color: currentcolor;
+}
+
+.auth-note,
+.error-note {
+  margin: 0;
+  color: #596675;
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+.error-note {
+  color: #a23d31;
+}
+
+.profile-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.profile-row img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.profile-row strong,
+.profile-row span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.profile-row strong {
+  color: #1b2430;
+}
+
+.profile-row span {
+  color: #596675;
+  font-size: 0.92rem;
 }
 
 .status-row,
@@ -143,4 +210,3 @@ svg {
     grid-template-columns: 1fr;
   }
 }
-

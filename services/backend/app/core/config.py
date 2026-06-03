@@ -11,8 +11,14 @@ class Settings(BaseSettings):
     ai_service_url: str = "http://ai-service:8001"
     chroma_url: str = "http://chromadb:8000"
     session_secret: str = "replace-with-local-dev-secret"
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/api/v1/auth/google/callback"
+    frontend_url: str = "http://localhost:5173"
+    session_cookie_name: str = "applywise_session"
+    session_max_age_seconds: int = 60 * 60 * 24 * 7
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=(".env", "../../.env"), extra="ignore")
 
     @property
     def cors_origins(self) -> list[str]:
@@ -20,4 +26,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
