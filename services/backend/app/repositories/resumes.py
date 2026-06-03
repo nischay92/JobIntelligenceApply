@@ -41,3 +41,39 @@ class ResumeRepository:
 
     def has_any_for_user(self, user_id: str) -> bool:
         return self.db.scalar(select(Resume.id).where(Resume.user_id == user_id).limit(1)) is not None
+
+    def get_for_user(self, *, user_id: str, resume_id: str) -> Resume | None:
+        return self.db.scalar(select(Resume).where(Resume.id == resume_id, Resume.user_id == user_id))
+
+    def mark_parsing(self, resume: Resume) -> Resume:
+        resume.status = "parsing"
+        resume.parse_error = None
+        self.db.commit()
+        self.db.refresh(resume)
+        return resume
+
+    def mark_parsed(
+        self,
+        resume: Resume,
+        *,
+        parsed_profile: dict,
+        plain_text: str,
+        vector_id: str,
+        parser_version: str,
+    ) -> Resume:
+        resume.status = "parsed"
+        resume.parsed_profile = parsed_profile
+        resume.plain_text = plain_text
+        resume.vector_id = vector_id
+        resume.parser_version = parser_version
+        resume.parse_error = None
+        self.db.commit()
+        self.db.refresh(resume)
+        return resume
+
+    def mark_failed(self, resume: Resume, *, error: str) -> Resume:
+        resume.status = "failed"
+        resume.parse_error = error
+        self.db.commit()
+        self.db.refresh(resume)
+        return resume

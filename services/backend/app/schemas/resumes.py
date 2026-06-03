@@ -10,6 +10,9 @@ class ResumeResponse(BaseModel):
     file_size_bytes: int
     status: str
     active: bool
+    parsed_profile: dict | None = None
+    parser_version: str | None = None
+    parse_error: str | None = None
     created_at: datetime
     updated_at: datetime
 

@@ -5,6 +5,9 @@ description = "ApplyWise AI service for parsing, scoring, generation, and embedd
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.115.0",
+  "pypdf>=5.1.0",
+  "python-docx>=1.1.2",
+  "python-multipart>=0.0.12",
   "pydantic-settings>=2.5.2",
   "uvicorn[standard]>=0.30.6"
 ]

@@ -11,10 +11,10 @@ import {
 } from "lucide-react";
 
 const milestones = [
-  "PDF and DOCX upload",
-  "Authenticated resume API",
-  "Secure file validation",
-  "Resume metadata storage",
+  "Local PDF/DOCX parsing",
+  "Structured profile JSON",
+  "Deterministic embeddings",
+  "Parsed resume storage",
   "Human-in-loop guardrails"
 ];
 
@@ -34,6 +34,12 @@ type Resume = {
   file_size_bytes: number;
   status: string;
   active: boolean;
+  parsed_profile: {
+    skills?: string[];
+    keywords?: string[];
+  } | null;
+  parser_version: string | null;
+  parse_error: string | null;
   created_at: string;
 };
 
@@ -45,6 +51,7 @@ export function App() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "uploaded">("idle");
+  const [parsingId, setParsingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -134,6 +141,25 @@ export function App() {
     await loadResumes();
   }
 
+  async function parseResume(resumeId: string) {
+    setError(null);
+    setParsingId(resumeId);
+    const response = await fetch(`${apiBaseUrl}/api/v1/resumes/${resumeId}/parse`, {
+      method: "POST",
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
+      setError(payload?.detail ?? "Resume parsing failed.");
+      setParsingId(null);
+      return;
+    }
+
+    setParsingId(null);
+    await loadResumes();
+  }
+
   return (
     <main className="app-shell">
       <section className="intro">
@@ -141,8 +167,8 @@ export function App() {
           <p className="eyebrow">ApplyWise AI</p>
           <h1>Job intelligence with the human firmly in charge.</h1>
           <p className="summary">
-            Phase 4 adds authenticated resume upload for PDF and DOCX files. Original resumes are
-            stored safely as source documents; parsing and suggestions come in later phases.
+            Phase 5 parses uploaded resumes into structured profile JSON and deterministic
+            embeddings. Source resumes stay unchanged.
           </p>
         </div>
         <div className="status-panel" aria-label="Authentication status">
@@ -231,7 +257,19 @@ export function App() {
                       {resume.status} · {Math.ceil(resume.file_size_bytes / 1024)} KB
                       {resume.active ? " · active" : ""}
                     </span>
+                    {resume.parsed_profile?.skills?.length ? (
+                      <small>{resume.parsed_profile.skills.slice(0, 6).join(", ")}</small>
+                    ) : null}
                   </div>
+                  <button
+                    className="icon-action"
+                    disabled={parsingId === resume.id || resume.status === "parsed"}
+                    onClick={() => void parseResume(resume.id)}
+                    title="Parse resume"
+                    type="button"
+                  >
+                    <Sparkles aria-hidden="true" />
+                  </button>
                 </article>
               ))
             )}
@@ -239,7 +277,7 @@ export function App() {
         </section>
       ) : null}
 
-      <section className="milestone-grid" aria-label="Phase 4 milestones">
+      <section className="milestone-grid" aria-label="Phase 5 milestones">
         {milestones.map((milestone) => (
           <article className="milestone-card" key={milestone}>
             <Sparkles aria-hidden="true" />
@@ -250,7 +288,7 @@ export function App() {
 
       <footer className="footer-note">
         <Bell aria-hidden="true" />
-        <span>Resume parsing arrives in Phase 5; this phase only stores source resumes.</span>
+        <span>Application content generation waits for Phase 8 and always requires review.</span>
       </footer>
     </main>
   );

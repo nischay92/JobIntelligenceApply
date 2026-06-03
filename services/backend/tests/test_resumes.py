@@ -99,3 +99,43 @@ def test_resume_list_returns_user_resumes(authenticated_client: TestClient) -> N
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert response.json()[0]["original_filename"] == "resume.pdf"
+
+
+def test_resume_parse_updates_profile(authenticated_client: TestClient, monkeypatch) -> None:
+    upload_response = authenticated_client.post(
+        "/api/v1/resumes",
+        files={"file": ("resume.pdf", b"%PDF-1.4", "application/pdf")},
+    )
+    resume_id = upload_response.json()["id"]
+
+    async def fake_parse_resume(_resume: Resume) -> dict:
+        return {
+            "profile": {
+                "skills": ["Python", "FastAPI"],
+                "experience": ["Built APIs"],
+                "projects": [],
+                "education": [],
+                "certifications": [],
+                "keywords": ["Python", "FastAPI", "APIs"],
+            },
+            "plain_text": "Skills\nPython, FastAPI",
+            "embedding": [0.1, 0.2],
+            "parser_version": "test-parser",
+            "vector_id": f"resume-{resume_id}-vector",
+        }
+
+    monkeypatch.setattr("app.api.v1.resumes.parse_resume_with_ai_service", fake_parse_resume)
+
+    response = authenticated_client.post(f"/api/v1/resumes/{resume_id}/parse")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "parsed"
+    assert payload["parser_version"] == "test-parser"
+    assert payload["parsed_profile"]["skills"] == ["Python", "FastAPI"]
+
+
+def test_resume_parse_requires_ownership(authenticated_client: TestClient) -> None:
+    response = authenticated_client.post("/api/v1/resumes/missing/parse")
+
+    assert response.status_code == 404
