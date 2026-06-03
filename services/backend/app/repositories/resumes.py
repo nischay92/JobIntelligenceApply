@@ -45,6 +45,15 @@ class ResumeRepository:
     def get_for_user(self, *, user_id: str, resume_id: str) -> Resume | None:
         return self.db.scalar(select(Resume).where(Resume.id == resume_id, Resume.user_id == user_id))
 
+    def get_active_parsed_for_user(self, user_id: str) -> Resume | None:
+        return self.db.scalar(
+            select(Resume).where(
+                Resume.user_id == user_id,
+                Resume.active.is_(True),
+                Resume.status == "parsed",
+            )
+        )
+
     def mark_parsing(self, resume: Resume) -> Resume:
         resume.status = "parsing"
         resume.parse_error = None

@@ -189,7 +189,8 @@ svg {
 }
 
 .resume-workbench,
-.jobs-workbench {
+.jobs-workbench,
+.matches-workbench {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 360px) minmax(260px, 420px);
   gap: 22px;
@@ -199,7 +200,8 @@ svg {
 }
 
 .resume-workbench h2,
-.jobs-workbench h2 {
+.jobs-workbench h2,
+.matches-workbench h2 {
   margin: 0;
   color: #1b2430;
   font-size: 1.55rem;
@@ -207,7 +209,8 @@ svg {
 }
 
 .resume-workbench p,
-.jobs-workbench p {
+.jobs-workbench p,
+.matches-workbench p {
   margin: 10px 0 0;
   color: #596675;
   line-height: 1.55;
@@ -215,7 +218,8 @@ svg {
 
 .upload-panel,
 .resume-list,
-.job-list {
+.job-list,
+.match-list {
   display: grid;
   gap: 12px;
 }
@@ -246,7 +250,8 @@ svg {
 }
 
 .resume-row,
-.job-row {
+.job-row,
+.match-row {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) 42px;
   gap: 12px;
@@ -261,20 +266,45 @@ svg {
   grid-template-columns: 24px minmax(0, 1fr);
 }
 
+.match-row {
+  grid-template-columns: 52px minmax(0, 1fr);
+}
+
 .resume-row strong,
 .resume-row span,
 .resume-row small,
 .job-row strong,
-.job-row span {
+.job-row span,
+.match-row span,
+.match-row small {
   display: block;
   overflow-wrap: anywhere;
 }
 
 .resume-row span,
-.job-row span {
+.job-row span,
+.match-row span {
   margin-top: 4px;
   color: #596675;
   font-size: 0.9rem;
+}
+
+.match-row small {
+  margin-top: 6px;
+  color: #596675;
+  font-size: 0.84rem;
+}
+
+.score-badge {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 8px;
+  background: #2f6f5e;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 800;
 }
 
 .resume-row small {
@@ -309,7 +339,8 @@ svg {
   }
 
   .resume-workbench,
-  .jobs-workbench {
+  .jobs-workbench,
+  .matches-workbench {
     grid-template-columns: 1fr;
   }
 }

@@ -53,6 +53,18 @@ type Job = {
   description_url: string;
 };
 
+type Match = {
+  id: string;
+  overall_score: number;
+  skill_score: number;
+  experience_score: number;
+  education_score: number;
+  missing_skills: string[];
+  priority: string;
+  priority_reason: string;
+  job: Job | null;
+};
+
 export function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [authStatus, setAuthStatus] = useState<"checking" | "anonymous" | "authenticated">(
@@ -64,6 +76,8 @@ export function App() {
   const [parsingId, setParsingId] = useState<string | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [discoveryStatus, setDiscoveryStatus] = useState<"idle" | "running" | "done">("idle");
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [scoringStatus, setScoringStatus] = useState<"idle" | "running" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -84,6 +98,7 @@ export function App() {
         setAuthStatus("authenticated");
         await loadResumes();
         await loadJobs();
+        await loadMatches();
       } catch {
         setError("The backend is not reachable yet.");
         setAuthStatus("anonymous");
@@ -111,6 +126,15 @@ export function App() {
     }
   }
 
+  async function loadMatches() {
+    const response = await fetch(`${apiBaseUrl}/api/v1/matches`, {
+      credentials: "include"
+    });
+    if (response.ok) {
+      setMatches((await response.json()) as Match[]);
+    }
+  }
+
   async function signIn() {
     setError(null);
     const response = await fetch(`${apiBaseUrl}/api/v1/auth/google/login`, {
@@ -132,6 +156,7 @@ export function App() {
     setUser(null);
     setResumes([]);
     setJobs([]);
+    setMatches([]);
     setAuthStatus("anonymous");
   }
 
@@ -202,6 +227,27 @@ export function App() {
 
     setDiscoveryStatus("done");
     await loadJobs();
+  }
+
+  async function scoreJobs() {
+    setError(null);
+    setScoringStatus("running");
+    const response = await fetch(`${apiBaseUrl}/api/v1/matches/score`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ job_ids: jobs.map((job) => job.id) })
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
+      setError(payload?.detail ?? "Job scoring failed. Parse a resume first.");
+      setScoringStatus("idle");
+      return;
+    }
+
+    setScoringStatus("done");
+    await loadMatches();
   }
 
   return (
@@ -340,6 +386,15 @@ export function App() {
             <BriefcaseBusiness aria-hidden="true" />
             <span>{discoveryStatus === "running" ? "Discovering" : "Run sample discovery"}</span>
           </button>
+          <button
+            className="auth-button secondary"
+            disabled={scoringStatus === "running" || jobs.length === 0}
+            onClick={() => void scoreJobs()}
+            type="button"
+          >
+            <Sparkles aria-hidden="true" />
+            <span>{scoringStatus === "running" ? "Scoring" : "Score jobs"}</span>
+          </button>
           <div className="job-list" aria-label="Discovered jobs">
             {jobs.length === 0 ? (
               <p>No jobs discovered yet.</p>
@@ -352,6 +407,40 @@ export function App() {
                     <span>
                       {job.title} · {job.location ?? "Location not listed"} · {job.remote_policy}
                     </span>
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {authStatus === "authenticated" ? (
+        <section className="matches-workbench" aria-label="Job matches">
+          <div>
+            <p className="eyebrow">Matches</p>
+            <h2>Prioritize the best-fit roles.</h2>
+            <p>
+              Scores compare your parsed resume with discovered jobs. They guide prioritization;
+              applying remains fully manual.
+            </p>
+          </div>
+          <div className="match-list">
+            {matches.length === 0 ? (
+              <p>No scored jobs yet.</p>
+            ) : (
+              matches.slice(0, 5).map((match) => (
+                <article className="match-row" key={match.id}>
+                  <div className="score-badge">{match.overall_score}</div>
+                  <div>
+                    <strong>{match.job ? `${match.job.company} · ${match.job.title}` : "Job"}</strong>
+                    <span>
+                      {match.priority.toUpperCase()} · Skills {match.skill_score}% · Experience{" "}
+                      {match.experience_score}%
+                    </span>
+                    {match.missing_skills.length ? (
+                      <small>Missing: {match.missing_skills.slice(0, 5).join(", ")}</small>
+                    ) : null}
                   </div>
                 </article>
               ))
