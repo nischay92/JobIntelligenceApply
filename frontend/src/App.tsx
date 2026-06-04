@@ -11,11 +11,11 @@ import {
 } from "lucide-react";
 
 const milestones = [
-  "Local PDF/DOCX parsing",
-  "Structured profile JSON",
-  "Deterministic embeddings",
-  "Parsed resume storage",
-  "Human-in-loop guardrails"
+  "Cover letter drafts",
+  "Recruiter outreach drafts",
+  "Missing keyword guidance",
+  "Separate suggestion storage",
+  "Human review required"
 ];
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
@@ -65,6 +65,14 @@ type Match = {
   job: Job | null;
 };
 
+type GeneratedAnswer = {
+  id: string;
+  content_type: string;
+  content: string;
+  status: string;
+  job: Job | null;
+};
+
 export function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [authStatus, setAuthStatus] = useState<"checking" | "anonymous" | "authenticated">(
@@ -78,6 +86,8 @@ export function App() {
   const [discoveryStatus, setDiscoveryStatus] = useState<"idle" | "running" | "done">("idle");
   const [matches, setMatches] = useState<Match[]>([]);
   const [scoringStatus, setScoringStatus] = useState<"idle" | "running" | "done">("idle");
+  const [generatedAnswers, setGeneratedAnswers] = useState<GeneratedAnswer[]>([]);
+  const [generatingFor, setGeneratingFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -99,6 +109,7 @@ export function App() {
         await loadResumes();
         await loadJobs();
         await loadMatches();
+        await loadGeneratedAnswers();
       } catch {
         setError("The backend is not reachable yet.");
         setAuthStatus("anonymous");
@@ -135,6 +146,15 @@ export function App() {
     }
   }
 
+  async function loadGeneratedAnswers() {
+    const response = await fetch(`${apiBaseUrl}/api/v1/generated-answers`, {
+      credentials: "include"
+    });
+    if (response.ok) {
+      setGeneratedAnswers((await response.json()) as GeneratedAnswer[]);
+    }
+  }
+
   async function signIn() {
     setError(null);
     const response = await fetch(`${apiBaseUrl}/api/v1/auth/google/login`, {
@@ -157,6 +177,7 @@ export function App() {
     setResumes([]);
     setJobs([]);
     setMatches([]);
+    setGeneratedAnswers([]);
     setAuthStatus("anonymous");
   }
 
@@ -250,6 +271,31 @@ export function App() {
     await loadMatches();
   }
 
+  async function generateCoverLetter(match: Match) {
+    if (!match.job) {
+      return;
+    }
+
+    setError(null);
+    setGeneratingFor(match.id);
+    const response = await fetch(`${apiBaseUrl}/api/v1/generated-answers`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ job_id: match.job.id, content_type: "cover_letter" })
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
+      setError(payload?.detail ?? "Draft generation failed.");
+      setGeneratingFor(null);
+      return;
+    }
+
+    setGeneratingFor(null);
+    await loadGeneratedAnswers();
+  }
+
   return (
     <main className="app-shell">
       <section className="intro">
@@ -257,8 +303,8 @@ export function App() {
           <p className="eyebrow">ApplyWise AI</p>
           <h1>Job intelligence with the human firmly in charge.</h1>
           <p className="summary">
-            Phase 5 parses uploaded resumes into structured profile JSON and deterministic
-            embeddings. Source resumes stay unchanged.
+            Phase 8 generates tailored application drafts from scored jobs while keeping every
+            application workflow draft-only and human-approved.
           </p>
         </div>
         <div className="status-panel" aria-label="Authentication status">
@@ -442,6 +488,15 @@ export function App() {
                       <small>Missing: {match.missing_skills.slice(0, 5).join(", ")}</small>
                     ) : null}
                   </div>
+                  <button
+                    className="icon-action"
+                    disabled={generatingFor === match.id}
+                    onClick={() => void generateCoverLetter(match)}
+                    title="Generate cover letter draft"
+                    type="button"
+                  >
+                    <FileText aria-hidden="true" />
+                  </button>
                 </article>
               ))
             )}
@@ -449,7 +504,35 @@ export function App() {
         </section>
       ) : null}
 
-      <section className="milestone-grid" aria-label="Phase 5 milestones">
+      {authStatus === "authenticated" ? (
+        <section className="assistant-workbench" aria-label="Application assistant">
+          <div>
+            <p className="eyebrow">Assistant</p>
+            <h2>Review generated drafts.</h2>
+            <p>
+              Drafts are saved separately from your original resume. You decide what to use, edit,
+              approve, send, or ignore.
+            </p>
+          </div>
+          <div className="draft-list">
+            {generatedAnswers.length === 0 ? (
+              <p>No generated drafts yet.</p>
+            ) : (
+              generatedAnswers.slice(0, 4).map((answer) => (
+                <article className="draft-row" key={answer.id}>
+                  <strong>
+                    {answer.content_type.replaceAll("_", " ")} · {answer.status}
+                  </strong>
+                  <span>{answer.job ? `${answer.job.company} · ${answer.job.title}` : "Job"}</span>
+                  <pre>{answer.content}</pre>
+                </article>
+              ))
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="milestone-grid" aria-label="Phase 8 milestones">
         {milestones.map((milestone) => (
           <article className="milestone-card" key={milestone}>
             <Sparkles aria-hidden="true" />
@@ -460,7 +543,7 @@ export function App() {
 
       <footer className="footer-note">
         <Bell aria-hidden="true" />
-        <span>Application content generation waits for Phase 8 and always requires review.</span>
+        <span>Generated content is draft-only and never submitted automatically.</span>
       </footer>
     </main>
   );

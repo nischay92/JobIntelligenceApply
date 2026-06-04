@@ -190,7 +190,8 @@ svg {
 
 .resume-workbench,
 .jobs-workbench,
-.matches-workbench {
+.matches-workbench,
+.assistant-workbench {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 360px) minmax(260px, 420px);
   gap: 22px;
@@ -201,7 +202,8 @@ svg {
 
 .resume-workbench h2,
 .jobs-workbench h2,
-.matches-workbench h2 {
+.matches-workbench h2,
+.assistant-workbench h2 {
   margin: 0;
   color: #1b2430;
   font-size: 1.55rem;
@@ -210,7 +212,8 @@ svg {
 
 .resume-workbench p,
 .jobs-workbench p,
-.matches-workbench p {
+.matches-workbench p,
+.assistant-workbench p {
   margin: 10px 0 0;
   color: #596675;
   line-height: 1.55;
@@ -219,7 +222,8 @@ svg {
 .upload-panel,
 .resume-list,
 .job-list,
-.match-list {
+.match-list,
+.draft-list {
   display: grid;
   gap: 12px;
 }
@@ -267,7 +271,36 @@ svg {
 }
 
 .match-row {
-  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-columns: 52px minmax(0, 1fr) 42px;
+}
+
+.draft-row {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #d6dce3;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.draft-row strong,
+.draft-row span {
+  overflow-wrap: anywhere;
+}
+
+.draft-row span {
+  color: #596675;
+  font-size: 0.9rem;
+}
+
+.draft-row pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 0;
+  white-space: pre-wrap;
+  color: #263241;
+  font: inherit;
+  line-height: 1.45;
 }
 
 .resume-row strong,
@@ -340,7 +373,8 @@ svg {
 
   .resume-workbench,
   .jobs-workbench,
-  .matches-workbench {
+  .matches-workbench,
+  .assistant-workbench {
     grid-template-columns: 1fr;
   }
 }

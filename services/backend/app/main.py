@@ -4,6 +4,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.internal.jobs import router as internal_jobs_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.generated_answers import router as generated_answers_router
 from app.api.v1.health import router as health_router
 from app.api.v1.jobs import router as jobs_router
 from app.api.v1.matches import router as matches_router
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router)
     app.include_router(auth_router, prefix="/api/v1")
+    app.include_router(generated_answers_router, prefix="/api/v1")
     app.include_router(jobs_router, prefix="/api/v1")
     app.include_router(matches_router, prefix="/api/v1")
     app.include_router(resumes_router, prefix="/api/v1")
